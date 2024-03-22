@@ -42,6 +42,14 @@ for (int i = 0; i < length; ++i) {
     password += charset[distribution(generator)];
 }
 
+string xorEncryptDecrypt(const string& input) {
+    string output = input;
+    for (size_t i = 0; i < input.size(); i++) {
+        output[i] = input[i] ^ xorKey;
+    }
+    return output;
+}
+
 void login() {
     string l_name, l_pwd, encryptedPwd, decryptedPwd;
     bool found = false;
@@ -140,7 +148,7 @@ void _register() {
         }
     }
 
-    ofstream account_file("users.pmd", ios::app); // Append mode
+    ofstream account_file("users.pmd", ios::app); 
     if (!account_file.is_open()) {
         cout << "Failed to open user file." << endl;
         return;
@@ -152,8 +160,80 @@ void _register() {
     cout << "[+] Successfully created new user! Returning back to main menu..." << endl;
     main_menu();
 }
+
 void delete_user() {
+    cout << "[?] Enter your username to confirm your identity:" << endl;
+    string del_name;
+    getline(cin >> ws, del_name);
+    cout << "[?] Enter your password for verification:" << endl;
+    string del_pwd;
+    getline(cin >> ws, del_pwd);
+
+    ifstream account_file("users.pmd");
+    string line, encryptedPwd, decryptedPwd;
+    bool found = false;
+
+    if (!account_file.is_open()) {
+        cout << "Failed to open user file." << endl;
+        return;
+    }
+
+    while (getline(account_file, line)) {
+        size_t commaPos = line.find(',');
+        if (commaPos != string::npos) {
+            string name = line.substr(0, commaPos);
+            encryptedPwd = line.substr(commaPos + 1);
+            decryptedPwd = xorEncryptDecrypt(encryptedPwd);
+
+            if (del_name == name && del_pwd == decryptedPwd) {
+                found = true;
+                break;
+            }
+        }
+    }
+    account_file.close();
+    if (!found) {
+        cout << "Verification failed. Incorrect username or password." << endl;
+        main_menu();
+        return;
+    }
+
+   
+    ofstream temp_file("temp.pmd");
+    account_file.open("users.pmd", ios::in); // Re-open for reading
+    if (!account_file.is_open() || !temp_file.is_open()) {
+        cout << "Failed to open necessary files." << endl;
+        return;
+    }
+
+    while (getline(account_file, line)) {
+        size_t commaPos = line.find(',');
+        if (commaPos != string::npos) {
+            string name = line.substr(0, commaPos);
+            if (name != del_name) {
+                temp_file << line << endl;
+            }
+        }
+    }
+
+    account_file.close();
+    temp_file.close();
+
     
+    remove("users.pmd");
+    rename("temp.pmd", "users.pmd");
+
+   
+    string filename = del_name + "_platforms.pmd";
+    if (remove(filename.c_str()) != 0) {
+        cout << "Note: No platform-specific data found for deletion." << endl;
+    }
+    else {
+        cout << "Platform-specific data successfully removed." << endl;
+    }
+
+    cout << "User " << del_name << " successfully deleted." << endl;
+    main_menu();
 }
 
 void _quit() {
