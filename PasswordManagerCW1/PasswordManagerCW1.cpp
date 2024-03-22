@@ -8,7 +8,7 @@ using namespace std;
 
 string g_usr;
 string g_pwd;
-const char xorKey = '43';
+const char xorKey = 'A';
 
 
 void main_menu();
