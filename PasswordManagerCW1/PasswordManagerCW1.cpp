@@ -4,11 +4,12 @@
 #include <random>
 #include <ctime>
 
+
 using namespace std;
 
-string g_usr;
-string g_pwd;
-const char xorKey = 'A';
+string g_usr;  
+string g_pwd; 
+const char xorKey = 'A'; 
 
 
 void main_menu();
@@ -22,25 +23,31 @@ void list_platform_accounts();
 void generate_password();
 string xorEncryptDecrypt(const string& input);
 
+
 void generate_password() {
     const char charset[] =
-"0123456789"
-"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-"abcdefghijklmnopqrstuvwxyz"
-"!@#$%^&*()_+-=[]{}|;:',.<>/?";
-const size_t max_index = (sizeof(charset) - 1);
-random_device rd;
-mt19937 generator(rd());
-uniform_int_distribution<> distribution(0, max_index - 1);
+        "0123456789"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "abcdefghijklmnopqrstuvwxyz"
+        "!@#$%^&*()_+-=[]{}|;:',.<>/?";
+    const size_t max_index = (sizeof(charset) - 1);
+    random_device rd;
+    mt19937 generator(rd());
+    uniform_int_distribution<> distribution(0, max_index - 1);
 
-cout << "[?] How long do you want your password to be?" << endl;
-int length;
-cin >> length;
+    cout << "[?] How long do you want your password to be?" << endl;
+    int length;
+    cin >> length;
 
-string password;
-for (int i = 0; i < length; ++i) {
-    password += charset[distribution(generator)];
+    string password;
+    for (int i = 0; i < length; ++i) {
+        password += charset[distribution(generator)];
+    }
+
+    cout << "[+] Your generated password is: " << password << endl;
+    _menu();
 }
+
 
 string xorEncryptDecrypt(const string& input) {
     string output = input;
@@ -49,6 +56,7 @@ string xorEncryptDecrypt(const string& input) {
     }
     return output;
 }
+
 
 void login() {
     string l_name, l_pwd, encryptedPwd, decryptedPwd;
@@ -128,6 +136,8 @@ bool isValidPassword(const string& password) {
     return hasUppercase && hasLowercase && hasSpecialChar;
 }
 
+
+
 bool usernameExists(const string& username) {
     ifstream account_file("users.pmd");
     if (!account_file.is_open()) {
@@ -194,6 +204,7 @@ void _register() {
     main_menu();
 }
 
+
 void delete_user() {
     cout << "[?] Enter your username to confirm your identity:" << endl;
     string del_name;
@@ -256,7 +267,7 @@ void delete_user() {
     remove("users.pmd");
     rename("temp.pmd", "users.pmd");
 
-    // Removing the user's platform-specific data file
+    // Remove the user's platform-specific data file
     string filename = del_name + "_platforms.pmd";
     if (remove(filename.c_str()) != 0) {
         cout << "Note: No platform-specific data found for deletion." << endl;
@@ -267,12 +278,12 @@ void delete_user() {
 
     cout << "User " << del_name << " successfully deleted." << endl;
     main_menu();
+}
 
 void _quit() {
     cout << "Exiting the password manager." << endl;
     exit(0);
 }
-
 
 void add_platform_account() {
     string platformName, platformUser, platformPwd, encryptedPlatformUser, encryptedPlatformPwd;
@@ -334,12 +345,13 @@ void list_platform_accounts() {
     _menu();
 }
 
+
 void _menu() {
     cout << "Welcome, " << g_usr << ". How can we help you today?" << endl;
     cout << "[1] Add a new platform account" << endl;
     cout << "[2] List all stored platform accounts" << endl;
     cout << "[3] Return to main menu" << endl;
-    cout << "[4] Generate a secure password" << endl;
+    cout << "[4] Generate a secure password" << endl; // Add this line
 
     string option;
     getline(cin >> ws, option);
@@ -367,7 +379,7 @@ void main_menu() {
     cout << "Welcome to the password manager... Please select one of the options:" << endl;
     cout << "[1] Login with user" << endl;
     cout << "[2] Create new user" << endl;
-    cout << "[3] Delete user" << endl;
+    cout << "[3] Delete user" << endl;  
     cout << "[4] Quit the password manager" << endl;
 
     getline(cin >> ws, option);
@@ -379,7 +391,7 @@ void main_menu() {
         _register();
     }
     else if (option == "3") {
-        delete_user();
+        delete_user(); 
         cout << "Delete user functionality not implemented." << endl;
         main_menu();
     }
