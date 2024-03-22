@@ -43,16 +43,124 @@ for (int i = 0; i < length; ++i) {
 }
 
 void login() {
-    
+    string l_name, l_pwd, encryptedPwd, decryptedPwd;
+    bool found = false;
+
+    cout << "[?] What is your username?" << endl;
+    getline(cin >> ws, l_name);
+    cout << "[?] What is your password?" << endl;
+    getline(cin >> ws, l_pwd);
+
+    ifstream account_file("users.pmd");
+    if (!account_file.is_open()) {
+        cout << "Failed to open user file." << endl;
+        return;
+    }
+
+    string line;
+    while (getline(account_file, line)) {
+        size_t commaPos = line.find(',');
+        if (commaPos != string::npos) {
+            string name = line.substr(0, commaPos);
+            encryptedPwd = line.substr(commaPos + 1);
+            decryptedPwd = xorEncryptDecrypt(encryptedPwd);
+
+            if (l_name == name && l_pwd == decryptedPwd) {
+                found = true;
+                g_usr = l_name;
+                g_pwd = l_pwd;
+                break;
+            }
+        }
+    }
+
+    account_file.close();
+
+    if (found) {
+        cout << "Login successful!" << endl;
+        _menu();
+    }
+    else {
+        cout << "Incorrect username or password." << endl;
+        main_menu();
+    }
 }
+
+
+bool isValidPassword(const string& password) {
+    
+    if (password.length() < 7) {
+        return false;
+    }
+
+    bool hasUppercase = false;
+    bool hasLowercase = false;
+    bool hasSpecialChar = false;
+
+    
+    string specialChars = "!@#$%^&*()_+-=[]{}|;:',.<>/?";
+
+    
+    for (char ch : password) {
+        
+        if (isupper(ch)) {
+            hasUppercase = true;
+        }
+        
+        else if (islower(ch)) {
+            hasLowercase = true;
+        }
+        
+        else if (specialChars.find(ch) != string::npos) {
+            hasSpecialChar = true;
+        }
+    }
+
+    
+    return hasUppercase && hasLowercase && hasSpecialChar;
+}
+
 void _register() {
+    string name, pwd, encryptedPwd;
+
+    cout << "[?] What will be your new username?" << endl;
+    getline(cin >> ws, name);
+
+    bool validPassword = false;
+    while (!validPassword) {
+        cout << "[?] What will be your new password?" << endl;
+        getline(cin >> ws, pwd);
+
+        if (isValidPassword(pwd)) {
+            validPassword = true;
+            encryptedPwd = xorEncryptDecrypt(pwd);
+        }
+        else {
+            cout << "Invalid password. Must be at least 7 characters long, include an uppercase letter, a lowercase letter, and a special character." << endl;
+        }
+    }
+
+    ofstream account_file("users.pmd", ios::app); // Append mode
+    if (!account_file.is_open()) {
+        cout << "Failed to open user file." << endl;
+        return;
+    }
+
+    account_file << name << "," << encryptedPwd << endl;
+    account_file.close();
+
+    cout << "[+] Successfully created new user! Returning back to main menu..." << endl;
+    main_menu();
 }
 void delete_user() {
     
 }
+
 void _quit() {
-    
+    cout << "Exiting the password manager." << endl;
+    exit(0);
 }
+
 
 void add_platform_account() {
     
