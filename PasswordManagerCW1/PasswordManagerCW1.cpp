@@ -256,7 +256,7 @@ void delete_user() {
     remove("users.pmd");
     rename("temp.pmd", "users.pmd");
 
-    // Remove the user's platform-specific data file
+    // Removing the user's platform-specific data file
     string filename = del_name + "_platforms.pmd";
     if (remove(filename.c_str()) != 0) {
         cout << "Note: No platform-specific data found for deletion." << endl;
@@ -275,13 +275,64 @@ void _quit() {
 
 
 void add_platform_account() {
-    
-}
-void list_plateform_accoumts() {
-    
+    string platformName, platformUser, platformPwd, encryptedPlatformUser, encryptedPlatformPwd;
+
+    cout << "[?] What is the name of the platform?" << endl;
+    getline(cin >> ws, platformName);
+    cout << "[?] What is your username on this platform?" << endl;
+    getline(cin >> ws, platformUser);
+    cout << "[?] What is your password on this platform?" << endl;
+    getline(cin >> ws, platformPwd);
+
+    encryptedPlatformUser = xorEncryptDecrypt(platformUser);
+    encryptedPlatformPwd = xorEncryptDecrypt(platformPwd);
+
+    // Filename from the user's name
+    string filename = g_usr + "_platforms.pmd";
+
+    ofstream account_file(filename, ios::app); 
+    if (!account_file.is_open()) {
+        cout << "Failed to open platform file." << endl;
+        return;
+    }
+
+    account_file << platformName << "," << encryptedPlatformUser << "," << encryptedPlatformPwd << endl;
+    account_file.close();
+
+    cout << "[+] Successfully added new platform account! Returning back to menu..." << endl;
+    _menu();
 }
 
+void list_platform_accounts() {
+    string filename = g_usr + "_platforms.pmd";
+    ifstream account_file(filename);
+    if (!account_file.is_open()) {
+        cout << "No platform credentials stored." << endl;
+        return;
+    }
 
+    string line;
+    bool found = false;
+    while (getline(account_file, line)) {
+        size_t firstCommaPos = line.find(',');
+        size_t secondCommaPos = line.find(',', firstCommaPos + 1);
+        if (firstCommaPos != string::npos && secondCommaPos != string::npos) {
+            found = true;
+            string platformName = line.substr(0, firstCommaPos);
+            string platformUser = xorEncryptDecrypt(line.substr(firstCommaPos + 1, secondCommaPos - firstCommaPos - 1));
+            string platformPwd = xorEncryptDecrypt(line.substr(secondCommaPos + 1));
+
+            cout << "Platform: " << platformName << ", Username: " << platformUser << ", Password: " << platformPwd << endl;
+        }
+    }
+
+    account_file.close();
+
+    if (!found) {
+        cout << "No platform credentials stored." << endl;
+    }
+    _menu();
+}
 
 void _menu() {
     cout << "Welcome, " << g_usr << ". How can we help you today?" << endl;
