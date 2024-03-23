@@ -7,9 +7,9 @@
 
 using namespace std;
 
-string g_usr;  
-string g_pwd; 
-const char xorKey = 'A'; 
+string g_usr;
+string g_pwd;
+const char xorKey = '1';
 
 
 void main_menu();
@@ -104,7 +104,7 @@ void login() {
 
 
 bool isValidPassword(const string& password) {
-    
+
     if (password.length() < 7) {
         return false;
     }
@@ -113,26 +113,26 @@ bool isValidPassword(const string& password) {
     bool hasLowercase = false;
     bool hasSpecialChar = false;
 
-    
+
     string specialChars = "!@#$%^&*()_+-=[]{}|;:',.<>/?";
 
-    
+
     for (char ch : password) {
-        
+
         if (isupper(ch)) {
             hasUppercase = true;
         }
-        
+
         else if (islower(ch)) {
             hasLowercase = true;
         }
-        
+
         else if (specialChars.find(ch) != string::npos) {
             hasSpecialChar = true;
         }
     }
 
-    
+
     return hasUppercase && hasLowercase && hasSpecialChar;
 }
 
@@ -141,8 +141,9 @@ bool isValidPassword(const string& password) {
 bool usernameExists(const string& username) {
     ifstream account_file("users.pmd");
     if (!account_file.is_open()) {
-        cout << "Failed to open user file." << endl;
-        return true; 
+        // Instead of printing an error message, just return false
+        // since the file not existing means the username can't exist.
+        return false;
     }
 
     string line;
@@ -151,13 +152,14 @@ bool usernameExists(const string& username) {
         if (commaPos != string::npos) {
             string name = line.substr(0, commaPos);
             if (name == username) {
-                return true; 
+                account_file.close();
+                return true;
             }
         }
     }
 
     account_file.close();
-    return false; 
+    return false;
 }
 
 void _register() {
@@ -168,41 +170,42 @@ void _register() {
         cout << "[?] What will be your new username?" << endl;
         getline(cin >> ws, name);
 
-       
         if (usernameExists(name)) {
             cout << "Username already exists. Please choose a different username." << endl;
+            // Don't need to set usernameAccepted to false here because it's already false
         }
         else {
-            usernameAccepted = true; 
-        }
-    }
+            usernameAccepted = true;
 
-    bool validPassword = false;
-    while (!validPassword) {
-        cout << "[?] What will be your new password?" << endl;
-        getline(cin >> ws, pwd);
+            bool validPassword = false;
+            while (!validPassword) {
+                cout << "[?] What will be your new password?" << endl;
+                getline(cin >> ws, pwd);
 
-        if (isValidPassword(pwd)) {
-            validPassword = true;
+                if (isValidPassword(pwd)) {
+                    validPassword = true;
+                }
+                else {
+                    cout << "Invalid password. Must be at least 7 characters long, include an uppercase letter, a lowercase letter, and a special character." << endl;
+                }
+            }
+
             encryptedPwd = xorEncryptDecrypt(pwd);
-        }
-        else {
-            cout << "Invalid password. Must be at least 7 characters long, include an uppercase letter, a lowercase letter, and a special character." << endl;
+            ofstream account_file("users.pmd", ios::app);
+            if (!account_file.is_open()) {
+                cout << "Failed to open user file." << endl;
+                return;
+            }
+
+            account_file << name << "," << encryptedPwd << endl;
+            account_file.close();
+
+            cout << "[+] Successfully created new user! Returning back to main menu..." << endl;
+            main_menu();
         }
     }
-
-    ofstream account_file("users.pmd", ios::app); 
-    if (!account_file.is_open()) {
-        cout << "Failed to open user file." << endl;
-        return;
-    }
-
-    account_file << name << "," << encryptedPwd << endl;
-    account_file.close();
-
-    cout << "[+] Successfully created new user! Returning back to main menu..." << endl;
-    main_menu();
 }
+
 
 
 void delete_user() {
@@ -244,7 +247,7 @@ void delete_user() {
 
     // User is verified; proceed with deletion
     ofstream temp_file("temp.pmd");
-    account_file.open("users.pmd", ios::in); 
+    account_file.open("users.pmd", ios::in);
     if (!account_file.is_open() || !temp_file.is_open()) {
         cout << "Failed to open necessary files." << endl;
         return;
@@ -301,7 +304,7 @@ void add_platform_account() {
     // Filename from the user's name
     string filename = g_usr + "_platforms.pmd";
 
-    ofstream account_file(filename, ios::app); 
+    ofstream account_file(filename, ios::app);
     if (!account_file.is_open()) {
         cout << "Failed to open platform file." << endl;
         return;
@@ -351,7 +354,7 @@ void _menu() {
     cout << "[1] Add a new platform account" << endl;
     cout << "[2] List all stored platform accounts" << endl;
     cout << "[3] Return to main menu" << endl;
-    cout << "[4] Generate a secure password" << endl; // Add this line
+    cout << "[4] Generate a secure password" << endl; 
 
     string option;
     getline(cin >> ws, option);
@@ -379,7 +382,7 @@ void main_menu() {
     cout << "Welcome to the password manager... Please select one of the options:" << endl;
     cout << "[1] Login with user" << endl;
     cout << "[2] Create new user" << endl;
-    cout << "[3] Delete user" << endl;  
+    cout << "[3] Delete user" << endl;
     cout << "[4] Quit the password manager" << endl;
 
     getline(cin >> ws, option);
@@ -391,7 +394,7 @@ void main_menu() {
         _register();
     }
     else if (option == "3") {
-        delete_user(); 
+        delete_user();
         cout << "Delete user functionality not implemented." << endl;
         main_menu();
     }
